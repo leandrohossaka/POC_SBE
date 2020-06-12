@@ -6,6 +6,7 @@ using SBEReflection.Loaders;
 using System;
 using System.Net;
 using System.Net.Sockets;
+using TCPSender;
 
 namespace TCPReceiver
 {
@@ -28,7 +29,6 @@ namespace TCPReceiver
 
                 // Buffer for reading data
                 Byte[] bytes = new Byte[256];
-                String data = null;
 
                 // Enter the listening loop.
                 while (true)
@@ -40,7 +40,6 @@ namespace TCPReceiver
                     TcpClient client = server.AcceptTcpClient();
                     Console.WriteLine("Connected!");
 
-                    data = null;
 
                     // Get a stream object for reading and writing
                     NetworkStream stream = client.GetStream();
@@ -59,9 +58,10 @@ namespace TCPReceiver
                         string type = "reflection";
                         switch (type)
                         {
-                            /*case "car":
+                            #region car
+                            case "car":
                                 var MessageHeader = new Sbe.MessageHeader();
-                                var Car = new Car();
+                                var Car = new Sbe.Car();
 
                                 // position the MessageHeader object at the beginning of the array
                                 MessageHeader.Wrap(directBuffer, bufferOffset, SchemaVersion);
@@ -79,10 +79,11 @@ namespace TCPReceiver
                                 bufferOffset += Sbe.MessageHeader.Size;
                                 // now we decode the message
                                 CarExample.Decode(Car, directBuffer, bufferOffset, actingBlockLength, actingVersion);
-                                break;*/
+                                break;
+                            #endregion
                             case "fix":
                                 var MessageHeaderFix = new SbeFIX.MessageHeader();
-                                var sno = new NewOrderCross();
+                                var sno = new NegotiateResponse();
 
                                 // position the MessageHeader object at the beginning of the array
                                 MessageHeaderFix.Wrap(directBuffer, bufferOffset, SchemaVersion);
@@ -98,15 +99,23 @@ namespace TCPReceiver
                                 int actingVersionFix = MessageHeaderFix.Version;
 
                                 bufferOffset += SbeFIX.MessageHeader.Size;
-
+                                 
                                 // now we decode the message
                                 NewOrderSingleExample.Decode(sno, directBuffer, bufferOffset, actingBlockLengthFix, actingVersionFix);
                                 break;
                             case "reflection":
-                                SbeReflectionWrapper _Wrapper = new SBEReflection.SbeReflectionWrapper(@"C:\Users\Akio\source\repos\POC_SBE\fixp-entrypoint-messages-1.2\bin\Debug\fixp-entrypoint-messages-1.2.dll");
-                                SbeLoader.Load(@"C:\Users\Akio\source\repos\POC_SBE\packages\sbe-tool.1.17.0\tools\fixp-entrypoint-messages-1.2.xml");
-                                Console.WriteLine(_Wrapper.DecodeSBEMessage(bytes));
+                                try
+                                {
+                                    SbeReflectionWrapper _Wrapper = new SBEReflection.SbeReflectionWrapper(@"C:\Users\Akio\source\repos\POC_SBE\fixp-entrypoint-messages-1.2\bin\Debug\fixp-entrypoint-messages-1.2.dll");
+                                    SbeLoader.Load(@"C:\Users\Akio\source\repos\POC_SBE\packages\sbe-tool.1.17.0\tools\fixp-entrypoint-messages-1.2.xml");
+                                    Console.WriteLine(_Wrapper.DecodeSBEMessage(bytes));
+                                }
+                                catch(Exception ex)
+                                {
+                                    Console.WriteLine(ex.Message);
+                                }
                                 break;
+
                         }
                     }
 

@@ -308,6 +308,7 @@ namespace SBEReflection
                             .GetBytes(field.Value);
                         MethodInfo mi = ReflectionHelper.GetMethodByName(assembly, MessageName, "Set" + field.Name, "byte[]");
                         mi.Invoke(MessageBody, new object[] { fieldByte, 0, fieldByte.Length });
+                        //mi.Invoke(MessageBody, new object[] { fieldByte, 0 });
                     }
                 }
                 #endregion
@@ -441,7 +442,7 @@ namespace SBEReflection
 
                         foreach (SbeField child in field.Fields)
                         {
-                            if (child.Presence.Contains("constant") || String.IsNullOrEmpty(child.Value))
+                            if (child.Presence.Contains("constant"))
                                 continue;
 
                             PropertyInfo pi2 = ReflectionHelper.GetPropertyByName(assembly, field.Type, child.Name);
@@ -452,10 +453,13 @@ namespace SBEReflection
                     {
                         // length = car.GetManufacturer(buffer, 0, buffer.Length);
                         //sb.Append("\ncar.manufacturer=").Append(Encoding.GetEncoding(Car.ManufacturerCharacterEncoding).GetString(buffer, 0, length));
+                        // length = car.GetModel(buffer, 0, buffer.Length);
+                        //sb.Append("\ncar.model=").Append(Encoding.GetEncoding(Car.ModelCharacterEncoding).GetString(buffer, 0, length));
 
                         FieldInfo fi = ReflectionHelper.GetFieldByName(assembly, MessageName, field.Name + "CharacterEncoding");
                         var buffer = new byte[128];
                         MethodInfo mi = ReflectionHelper.GetMethodByName(assembly, MessageName, "Get" + field.Name, "byte[]");
+
                         int len = (int)(mi.Invoke(MessageBody, new object[] { buffer, 0, buffer.Length }));
                         field.Value = Encoding.GetEncoding(fi.GetValue(MessageBody).ToString()).GetString(buffer, 0, len);
                     }

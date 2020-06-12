@@ -64,6 +64,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\CarProject\CarProject.csproj">
+      <Project>{872508A9-8CD2-4DF3-A474-47CDACD64AB4}</Project>
+      <Name>CarProject</Name>
+    </ProjectReference>
     <ProjectReference Include="..\fixp-entrypoint-messages-1.2\fixp-entrypoint-messages-1.2.csproj">
       <Project>{ea684d43-7369-409d-a396-964b62a8a21a}</Project>
       <Name>fixp-entrypoint-messages-1.2</Name>

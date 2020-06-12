@@ -26,7 +26,7 @@ namespace TCPSender
                     Console.ReadLine();
                     using (TcpClient client = new TcpClient(_Server, _Port))
                     {
-                        string type = "cross";
+                        string type = "fix";
 
                         NetworkStream stream = client.GetStream();
 
@@ -107,15 +107,15 @@ namespace TCPSender
             int bufferOffset = 0;
 
             var MessageHeader = new SbeFIX.MessageHeader();
-            var sno = new SimpleNewOrder();
+            var sno = new NegotiateResponse();
 
             // Before encoding a message we need to create a SBE header which specify what we are going to encode (this will allow the decoder to detect that it's an encoded 'car' object)
             // We will probably simplify this part soon, so the header gets applied automatically, but for now it's manual
-            MessageHeader.Wrap(directBuffer, bufferOffset, SimpleNewOrder.SchemaVersion); // position the MessageHeader on the DirectBuffer, at the correct position
-            MessageHeader.BlockLength = SimpleNewOrder.BlockLength; // size that a car takes on the wire
-            MessageHeader.SchemaId = SimpleNewOrder.SchemaId;
-            MessageHeader.TemplateId = SimpleNewOrder.TemplateId;   // identifier for the car object (SBE template ID)
-            MessageHeader.Version = SimpleNewOrder.SchemaVersion; // this can be overriden if we want to support different versions of the car object (advanced functionality)
+            MessageHeader.Wrap(directBuffer, bufferOffset, NegotiateResponse.SchemaVersion); // position the MessageHeader on the DirectBuffer, at the correct position
+            MessageHeader.BlockLength = NegotiateResponse.BlockLength; // size that a car takes on the wire
+            MessageHeader.SchemaId = NegotiateResponse.SchemaId;
+            MessageHeader.TemplateId = NegotiateResponse.TemplateId;   // identifier for the car object (SBE template ID)
+            MessageHeader.Version = NegotiateResponse.SchemaVersion; // this can be overriden if we want to support different versions of the car object (advanced functionality)
 
             // Now that we have encoded the header in the byte array we can encode the car object itself
             bufferOffset += SbeFIX.MessageHeader.Size;
@@ -136,15 +136,15 @@ namespace TCPSender
             int bufferOffset = 0;
 
             var MessageHeader = new SbeFIX.MessageHeader();
-            var sno = new Negotiate();
+            var sno = new NewOrderCross();
 
             // Before encoding a message we need to create a SBE header which specify what we are going to encode (this will allow the decoder to detect that it's an encoded 'car' object)
             // We will probably simplify this part soon, so the header gets applied automatically, but for now it's manual
             MessageHeader.Wrap(directBuffer, bufferOffset, Negotiate.SchemaVersion); // position the MessageHeader on the DirectBuffer, at the correct position
-            MessageHeader.BlockLength = Negotiate.BlockLength; // size that a car takes on the wire
-            MessageHeader.SchemaId = Negotiate.SchemaId;
-            MessageHeader.TemplateId = Negotiate.TemplateId;   // identifier for the car object (SBE template ID)
-            MessageHeader.Version = Negotiate.SchemaVersion; // this can be overriden if we want to support different versions of the car object (advanced functionality)
+            MessageHeader.BlockLength = NewOrderCross.BlockLength; // size that a car takes on the wire
+            MessageHeader.SchemaId = NewOrderCross.SchemaId;
+            MessageHeader.TemplateId = NewOrderCross.TemplateId;   // identifier for the car object (SBE template ID)
+            MessageHeader.Version = NewOrderCross.SchemaVersion; // this can be overriden if we want to support different versions of the car object (advanced functionality)
 
             // Now that we have encoded the header in the byte array we can encode the car object itself
             bufferOffset += SbeFIX.MessageHeader.Size;

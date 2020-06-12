@@ -53,6 +53,8 @@
             this.txtHost = new System.Windows.Forms.TextBox();
             this.lblConnectionStatus = new System.Windows.Forms.Label();
             this.btnSend = new System.Windows.Forms.Button();
+            this.checkBox1 = new System.Windows.Forms.CheckBox();
+            this.colEncoding = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             ((System.ComponentModel.ISupportInitialize)(this.tree)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numPort)).BeginInit();
             this.SuspendLayout();
@@ -95,6 +97,7 @@
             this.tree.AllColumns.Add(this.colPresence);
             this.tree.AllColumns.Add(this.colValueRef);
             this.tree.AllColumns.Add(this.colOffset);
+            this.tree.AllColumns.Add(this.colEncoding);
             this.tree.CellEditActivation = BrightIdeasSoftware.ObjectListView.CellEditActivateMode.SingleClick;
             this.tree.CellEditUseWholeCell = false;
             this.tree.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
@@ -106,7 +109,8 @@
             this.colPrimitiveType,
             this.colPresence,
             this.colValueRef,
-            this.colOffset});
+            this.colOffset,
+            this.colEncoding});
             this.tree.Cursor = System.Windows.Forms.Cursors.Default;
             this.tree.FullRowSelect = true;
             this.tree.HideSelection = false;
@@ -300,11 +304,27 @@
             this.btnSend.UseVisualStyleBackColor = true;
             this.btnSend.Click += new System.EventHandler(this.btnSend_Click);
             // 
+            // checkBox1
+            // 
+            this.checkBox1.AutoSize = true;
+            this.checkBox1.Location = new System.Drawing.Point(637, 83);
+            this.checkBox1.Name = "checkBox1";
+            this.checkBox1.Size = new System.Drawing.Size(138, 21);
+            this.checkBox1.TabIndex = 16;
+            this.checkBox1.Text = "QAT SBE Engine";
+            this.checkBox1.UseVisualStyleBackColor = true;
+            this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
+            // 
+            // colEncoding
+            // 
+            this.colEncoding.Text = "Encoding";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1065, 768);
+            this.Controls.Add(this.checkBox1);
             this.Controls.Add(this.btnSend);
             this.Controls.Add(this.lblConnectionStatus);
             this.Controls.Add(this.txtHost);
@@ -357,5 +377,7 @@
         private System.Windows.Forms.Label lblConnectionStatus;
         private System.Windows.Forms.Button btnSend;
         private BrightIdeasSoftware.OLVColumn colLength;
+        private System.Windows.Forms.CheckBox checkBox1;
+        private BrightIdeasSoftware.OLVColumn colEncoding;
     }
 }

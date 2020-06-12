@@ -1,4 +1,5 @@
 ﻿using SBEReflection.Loaders;
+using System;
 using System.Collections.Generic;
 using System.Xml;
 
@@ -13,12 +14,14 @@ namespace SBEReflection.Classes
         public string SemanticType { get; set; }
         public string Presence { get; set; }
         public string ValueRef { get; set; }
-        public string Offset { get; set; }
+        public int? Offset { get; set; }
         public string PrimitiveType { get; set; }
         public int? Length { get; set; }
         public string DimensionType { get; set; }
         public int? BlockLength { get; set; }
         public List<SbeField> Fields { get; set; }
+
+        public string CharacterEncoding { get; set; }
 
         public SbeField(XmlNode node)
         {
@@ -29,8 +32,10 @@ namespace SBEReflection.Classes
             this.SemanticType = node.Attributes["semanticType"] != null ? node.Attributes["semanticType"].Value : "";
             this.Presence = node.Attributes["presence"] != null ? node.Attributes["presence"].Value : "";
             this.ValueRef = node.Attributes["valueRef"] != null ? node.Attributes["valueRef"].Value : "";
-            this.Offset = node.Attributes["offset"] != null ? node.Attributes["offset"].Value : "";
+            this.Offset = node.Attributes["offset"] != null ? int.Parse(node.Attributes["offset"].Value) : 0;
             this.DimensionType = node.Attributes["dimensionType"] != null ? node.Attributes["dimensionType"].Value : "";
+            this.CharacterEncoding = node.Attributes["characterEncoding"] != null ? node.Attributes["characterEncoding"].Value : "";
+
             if (!string.IsNullOrEmpty(this.DimensionType))
                 this.Type = this.DimensionType;
             if (node.Attributes["blockLength"] != null)
@@ -62,6 +67,7 @@ namespace SBEReflection.Classes
                         f.ValueRef = type.ValueRef;
                         f.Presence = type.Presence;
                         f.Value = type.Value;
+                        f.PrimitiveType = type.PrimitiveType;
                         if (this.Length == null)
                             f.Length = GetLengthByType(type.PrimitiveType);
                         this.Fields.Add(f);
@@ -71,10 +77,31 @@ namespace SBEReflection.Classes
                 {
                     foreach (SbeType type in comp.Fields)
                     {
-                        if (type.Name.ToLower().Contains("length"))
+                        if (type.Name == "length")
                         {
-                            this.Length = type.MaxValue;
-                            this.PrimitiveType = this.SemanticType;
+                            SbeField f = new SbeField();
+                            f.Name = type.Name;
+                            f.Type = type.PrimitiveType;
+                            f.PrimitiveType = type.PrimitiveType;
+                            f.ValueRef = type.ValueRef;
+                            f.Presence = type.Presence;
+                            f.Value = type.Value;
+                            f.Length = type.MaxValue;
+                            f.CharacterEncoding = type.CharacterEncoding;
+                            this.Fields.Add(f);
+                        }
+                        else
+                        {
+                            SbeField f = new SbeField();
+                            f.Name = type.Name;
+                            f.Type = type.PrimitiveType;
+                            f.PrimitiveType = type.PrimitiveType;
+                            f.ValueRef = type.CharacterEncoding;
+                            f.Presence = type.Presence;
+                            f.Value = type.Value;
+                            f.Length = 0;
+                            f.CharacterEncoding = type.CharacterEncoding;
+                            this.Fields.Add(f);
                         }
                     }
                 }
@@ -86,6 +113,7 @@ namespace SBEReflection.Classes
                 this.Presence = comp.Presence;
                 this.Value = comp.Value;
                 this.Length = comp.Length;
+                this.CharacterEncoding = comp.CharacterEncoding;
             }
             else if (SbeLoader._Enums.Find(x => x.Name == this.Type) != null)
             {
@@ -130,6 +158,7 @@ namespace SBEReflection.Classes
             target.Value = this.Value;
             target.ValueRef = this.ValueRef;
             target.Fields = new List<SbeField>();
+            target.CharacterEncoding = this.CharacterEncoding;
             if (this.Fields != null && this.Fields.Count > 0)
             {
                 foreach (SbeField child in this.Fields)

@@ -7,23 +7,12 @@ namespace SbeFIX
     public class NewOrderSingleExample
     {
 
-        public static int Encode(SimpleNewOrder sno, DirectBuffer directBuffer, int bufferOffset)
+        public static int Encode(NegotiateResponse sno, DirectBuffer directBuffer, int bufferOffset)
         {
             // we position the car encoder on the direct buffer, at the correct offset (ie. just after the header)
             sno.WrapForEncode(directBuffer, bufferOffset);
-            sno.ClOrdID = 1234567890;
-            sno.Account = 111;
-            sno.SecurityID = 48;
-            sno.OrderQty = 100;
-            sno.MarketSegmentID = 70;
-            sno.Side = Side.BUY;
-            sno.OrdType = OrdType.LIMIT;
-            sno.TimeInForce = TimeInForce.DAY;
-            sno.InvestorID = 1;
-            sno.Price.Mantissa = 11;
-
-            byte[] trder = Encoding.GetEncoding(SimpleNewOrder.EnteringTraderCharacterEncoding).GetBytes("12345");
-            sno.SetEnteringTrader(trder, 0);
+            byte[] trder = Encoding.GetEncoding(NegotiateResponse.CredentialsCharacterEncoding).GetBytes("12345");
+            sno.SetCredentials(trder, 0, trder.Length);
             return sno.Size;
         }
 
@@ -57,6 +46,9 @@ namespace SbeFIX
             g.ClOrdID = 5678;
             g.Side = Side.SELL;
 
+            Negotiate n = new Negotiate();
+            n.Timestamp.Time = 1123;
+
             return sno.Size;
         }
 
@@ -86,6 +78,24 @@ namespace SbeFIX
             sb.Append("\nEnteringTrader=").Append(sno.GetEnteringTrader(0));
             sb.Append("\nMantissa=").Append(sno.Price.Mantissa);
             sb.Append("\nSize=").Append(sno.Size);
+
+            Console.WriteLine(sb.ToString());
+        }
+        public static void Decode(NegotiateResponse rsp,
+            DirectBuffer directBuffer,
+            int bufferOffset,
+            int actingBlockLength,
+            int actingVersion)
+        {
+            var buffer = new byte[128];
+            var sb = new StringBuilder();
+
+            // position the car flyweight just after the header on the DirectBuffer
+            rsp.WrapForDecode(directBuffer, bufferOffset, actingBlockLength, actingVersion);
+
+            int l = rsp.CredentialsLength();
+            rsp.GetCredentials(buffer, 0, l);
+            sb.Append("\ncar.manufacturer=").Append(Encoding.GetEncoding("UTF-8").GetString(buffer, 0, buffer.Length));
 
             Console.WriteLine(sb.ToString());
         }

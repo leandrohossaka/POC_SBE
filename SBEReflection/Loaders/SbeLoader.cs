@@ -6,6 +6,19 @@ namespace SBEReflection.Loaders
 {
     public static class SbeLoader
     {
+        public enum PrimitiveType
+        {
+            UINT8,
+            UINT16,
+            UINT32,
+            UINT64,
+            INT8,
+            INT16,
+            INT32,
+            INT64,
+            CHAR
+        }
+
         public static List<string> _Messages = new List<string>();
         public static List<SbeEnum> _Enums = new List<SbeEnum>();
         public static List<SbeType> _SimpleTypes = new List<SbeType>();
@@ -72,7 +85,6 @@ namespace SBEReflection.Loaders
                 {
                     foreach (XmlNode node in msgs)
                     {
-                        //	<sbe:message name="NegotiateResponse" id="2" description="Negotiate Response message">
                         SbeMessage msg = new SbeMessage(node);
                         if (msg.Name.ToLower().Equals(messageName.ToLower()))
                             return msg;
