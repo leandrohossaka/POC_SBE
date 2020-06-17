@@ -55,7 +55,7 @@ namespace TCPReceiver
                         int bufferOffset = 0;
                         const short SchemaVersion = 0;
 
-                        string type = "reflection";
+                        string type = "qatsbeengine";
                         switch (type)
                         {
                             #region car
@@ -103,6 +103,18 @@ namespace TCPReceiver
                                 // now we decode the message
                                 NewOrderSingleExample.Decode(sno, directBuffer, bufferOffset, actingBlockLengthFix, actingVersionFix);
                                 break;
+                            case "qatsbeengine":
+                                try
+                                {
+                                    SbeReflectionWrapper _Wrapper = new SBEReflection.SbeReflectionWrapper();
+                                    SbeLoader.Load(@"C:\Users\Akio\source\repos\POC_SBE\packages\sbe-tool.1.17.0\tools\fixp-entrypoint-messages-1.2.xml");
+                                    Console.WriteLine(_Wrapper.DecodeSBEMessageQATEngine(bytes));
+                                }
+                                catch(Exception ex)
+                                {
+                                    Console.WriteLine(ex.Message);
+                                }
+                                break;
                             case "reflection":
                                 try
                                 {
@@ -110,7 +122,7 @@ namespace TCPReceiver
                                     SbeLoader.Load(@"C:\Users\Akio\source\repos\POC_SBE\packages\sbe-tool.1.17.0\tools\fixp-entrypoint-messages-1.2.xml");
                                     Console.WriteLine(_Wrapper.DecodeSBEMessage(bytes));
                                 }
-                                catch(Exception ex)
+                                catch (Exception ex)
                                 {
                                     Console.WriteLine(ex.Message);
                                 }

@@ -28,8 +28,15 @@ namespace SBEReflection
             }
         }
 
+        public SbeReflectionWrapper()
+        {
+        }
+
         public byte[] EncodeSBEMessage(SbeMessage Message)
         {
+            if (_Assembly == null)
+                throw new Exception("To use SBE Engine, please init SbeReflectionWrapper passing the sbe file dll as parameter");
+
             var byteBuffer = new byte[4096];
             var directBuffer = new DirectBuffer(byteBuffer);
             int bufferOffset = 0;
@@ -113,7 +120,7 @@ namespace SBEReflection
                         SetField(directBuffer, field.Fields[0], ref bufferOffset);
                         field.Fields[1].PrimitiveType = "char";
                         SetField(directBuffer, field.Fields[1], ref bufferOffset);
-                        bufferOffset += field.Fields[0].Length.Value;
+                        bufferOffset += int.Parse(field.Fields[0].Value);
                     }
                     else if (field.Type.ToLower().Equals("groupsizeencoding"))
                     {
@@ -152,10 +159,6 @@ namespace SBEReflection
                     }
                 }
             }
-
-            //directBuffer.Uint8Put(27, (byte)10);
-            //byte[] reason = Encoding.GetEncoding("UTF-8").GetBytes("reasonreason");
-            //directBuffer.SetBytes(28, reason);
             #endregion
 
             var tempBuffer = new byte[bufferOffset];
@@ -163,7 +166,7 @@ namespace SBEReflection
             return tempBuffer;
         }
 
-        public void SetField(DirectBuffer buffer, SbeField field2, ref int offset)
+        private void SetField(DirectBuffer buffer, SbeField field2, ref int offset)
         {
             SbeField field = field2.Clone();
             if (field.PrimitiveType == null)
@@ -243,6 +246,9 @@ namespace SBEReflection
 
         public String DecodeSBEMessage(byte[] MessageBytes)
         {
+            if (_Assembly == null)
+                throw new Exception("To use SBE Engine, please init SbeReflectionWrapper passing the sbe file dll as parameter");
+
             StringBuilder sb = new StringBuilder();
             var directBuffer = new DirectBuffer(MessageBytes);
             int bufferOffset = 0;
@@ -293,6 +299,133 @@ namespace SBEReflection
             Message.FillFields(_Assembly, MessageBodyObj);
             sb.Append(Message.Crack());
             return sb.ToString();
+        }
+
+        public String DecodeSBEMessageQATEngine(byte[] MessageBytes)
+        {
+            StringBuilder sb = new StringBuilder();
+            var directBuffer = new DirectBuffer(MessageBytes);
+            int bufferOffset = 0;
+
+            ushort blockLength = directBuffer.Uint16GetLittleEndian(bufferOffset);
+            bufferOffset += 2;
+            sb.AppendLine(CrackHelper.CreateLine("Header", "BlockLength", blockLength.ToString()));
+
+            ushort templateId = directBuffer.Uint16GetLittleEndian(bufferOffset);
+            bufferOffset += 2;
+            sb.AppendLine(CrackHelper.CreateLine("Header", "TemplateId", templateId.ToString()));
+
+            ushort schemaId = directBuffer.Uint16GetLittleEndian(bufferOffset);
+            bufferOffset += 2;
+            sb.AppendLine(CrackHelper.CreateLine("Header", "SchemaId", schemaId.ToString()));
+
+            ushort version = directBuffer.Uint16GetLittleEndian(bufferOffset);
+            bufferOffset += 2;
+            sb.AppendLine(CrackHelper.CreateLine("Header", "Version", version.ToString()));
+
+            SbeMessage Message = SbeLoader.LoadMessageById(templateId.ToString());
+
+            if (Message == null)
+                throw new Exception("Message not recognized! TemplateId = " + templateId.ToString());
+
+            foreach (SbeField field in Message.Fields)
+            {
+                FillValue(directBuffer, field, ref bufferOffset);
+            }
+
+            sb.Append(Message.Crack());
+            return sb.ToString();
+        }
+
+        private void FillValue(DirectBuffer buffer, SbeField field2, ref int offset)
+        {
+            if (field2.Presence.ToLower().Contains("constant"))
+                return;
+
+            SbeField field = field2.Clone();
+            if (field.PrimitiveType == null)
+                field.PrimitiveType = field.Type;
+
+            if (field.PrimitiveType.ToLower().Equals("uint8"))
+            {
+                field2.Value = buffer.Uint8Get(offset).ToString();
+                offset += 1;
+            }
+            else if (field.PrimitiveType.ToLower().Equals("uint16"))
+            {
+                field2.Value = buffer.Uint16GetLittleEndian(offset).ToString();
+                offset += 2;
+            }
+            else if (field.PrimitiveType.ToLower().Equals("uint32"))
+            {
+                field2.Value = buffer.Uint32GetLittleEndian(offset).ToString();
+                offset += 4;
+            }
+            else if (field.PrimitiveType.ToLower().Equals("uint64"))
+            {
+                field2.Value = buffer.Uint64GetLittleEndian(offset).ToString();
+                offset += 8;
+            }
+            else if (field.PrimitiveType.ToLower().Equals("int8"))
+            {
+                field2.Value = buffer.Int8Get(offset).ToString();
+                offset += 1;
+            }
+            else if (field.PrimitiveType.ToLower().Equals("int16"))
+            {
+                field2.Value = buffer.Int16GetLittleEndian(offset).ToString();
+                offset += 2;
+            }
+            else if (field.PrimitiveType.ToLower().Equals("int32"))
+            {
+                field2.Value = buffer.Int32GetLittleEndian(offset).ToString();
+                offset += 4;
+            }
+            else if (field.PrimitiveType.ToLower().Equals("int64"))
+            {
+                field2.Value = buffer.Int64GetLittleEndian(offset).ToString();
+                offset += 8;
+            }
+            else if (field.PrimitiveType.ToLower().Equals("char"))
+            {
+                if (!String.IsNullOrEmpty(field.CharacterEncoding))
+                {
+                    List<byte> charString = new List<byte>();
+                    for (int i = 0; i < field.Length; i++)
+                    {
+                        charString.Add(buffer.CharGet(offset + i));
+                    }
+                    field2.Value = Encoding.GetEncoding(field.CharacterEncoding).GetString(charString.ToArray());
+                }
+                else
+                {
+                    byte[] charString = Encoding.GetEncoding("UTF-8").GetBytes(field.Value);
+                    buffer.CharPut(offset, charString[0]);
+                }
+
+                offset += field.Length.Value;
+            }
+
+            if (field2.Fields != null && field2.Fields.Count > 0)
+            {
+                if (!field2.Type.ToLower().EndsWith("encoding"))
+                {
+                    foreach (SbeField child in field2.Fields)
+                        FillValue(buffer, child, ref offset);
+                }
+                else
+                {
+                    FillValue(buffer, field2.Fields[0], ref offset);
+                    List<byte> charString = new List<byte>();
+                    int len = int.Parse(field2.Fields[0].Value);
+                    for (int i = 0; i < len; i++)
+                    {
+                        charString.Add(buffer.CharGet(offset + i));
+                    }
+                    field2.Fields[1].Value = Encoding.GetEncoding(field2.Fields[1].CharacterEncoding).GetString(charString.ToArray());
+                    offset += len;
+                }
+            }
         }
     }
 }

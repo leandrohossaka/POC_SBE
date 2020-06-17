@@ -66,12 +66,9 @@ namespace SBEReflection.Classes
 
                 if (field.Fields != null && field.Fields.Count > 0)
                 {
-                    if (!field.Type.ToLower().Contains("encoding") || field.Type.ToLower().Contains("groupsizeencoding"))
+                    foreach (SbeField child in field.Fields)
                     {
-                        foreach (SbeField child in field.Fields)
-                        {
-                            sb.AppendLine(CrackHelper.CreateLine(child.Id, "  " + child.Name, child.Value, child.ValueRef));
-                        }
+                        sb.AppendLine(CrackHelper.CreateLine(child.Id, "  " + child.Name, child.Value, child.ValueRef));
                     }
                 }
             }
